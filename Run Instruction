@@ -1,0 +1,100 @@
+# ComfyUI
+```bash
+pip install -r requirements.txt
+python3 main.py --force-fp16 --fp16-vae --fp16-unet --novram --listen 0.0.0.0 --port 8188 --use-pytorch-cross-attenti
+```
+
+# LLAMA.CPP
+
+## Convert Model to GGUF
+
+### Llama, Mistral
+
+```bash
+python3 convert.py ./raw_models/Mistral-7B-Instruct-v0.3 --outfile ./models/Mistral-7B-Instruct-v0.3_2/model-f16.gguf --outtype f16
+```
+
+### Gemma, Others
+
+```bash
+python3 convert-hf-to-gguf.py ./raw_models/Gemma-FC --outfile ./models/Gemma-FC/f16-modified.gguf --outtype f16
+```
+
+### Quantize Model
+
+```bash
+./quantize ./models/Mistral-7B-Instruct-v0.3_2/model-f16.gguf ./models/Mistral-7B-Instruct-v0.3_2/mistral-fc.gguf q8_0
+```
+
+### Server
+
+```bash
+./server -m models/gemma/gemma.gguf -c 4096 --port 8080
+```
+
+---
+
+# LOCALAI
+
+## Install Dependencies
+
+### Mac OS
+
+Install `xcode` from the App Store
+
+```bash
+brew install abseil cmake go grpc protobuf protoc-gen-go protoc-gen-go-grpc python wget
+```
+
+After installing the above dependencies, you need to install grpcio-tools from PyPI. You could do this via a pip --user install or a virtualenv.
+
+```bash
+pip install --user grpcio-tools
+```
+
+```bash
+xcode-select --print-path
+sudo xcode-select --switch /Applications/Xcode.app/Contents/Developer
+```
+
+### Debian
+
+```bash
+apt install golang protobuf-compiler-grpc libgrpc-dev make cmake
+pip install --user grpcio-tools
+```
+
+## Clone the Repo
+
+```bash
+git clone https://github.com/InterSyncAnalytics/LocalAI
+cd LocalAI
+```
+
+## Build the Binary
+
+```bash
+make build
+make BUILD_TYPE=clblas build
+make BUILD_TYPE=metal build
+make BUILD_TYPE=metal BUILD_GRPC_FOR_BACKEND_LLAMA=true build
+```
+
+## Download GPT4All-J to Models
+
+```bash
+wget https://gpt4all.io/models/ggml-gpt4all-j.bin -O models/ggml-gpt4all-j
+```
+
+## Use a Template from the Examples
+
+```bash
+cp -rf prompt-templates/ggml-gpt4all-j.tmpl models/
+```
+
+## Run LocalAI
+
+```bash
+./local-ai --models-path=./models/mistral.gguf --parallel-requests=true --context-size 2048 --cors=true --address=127.0.0.1:8080 --f16=false --debug=true
+./local-ai --address=127.0.0.1:8080 --debug=true --config-file=./configuration/config.yaml
+```
