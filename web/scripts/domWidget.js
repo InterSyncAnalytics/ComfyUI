@@ -1,2 +1,2 @@
 // Shim for scripts/domWidget.ts
-export const addDomClippingSetting = window.comfyAPI.domWidget.addDomClippingSetting;
+export const DOMWidgetImpl = window.comfyAPI.domWidget.DOMWidgetImpl;
